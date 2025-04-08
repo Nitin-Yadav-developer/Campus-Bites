@@ -100,5 +100,5 @@ For testing purposes, you can use the following credentials:
 
 ## Contributors
 
-- Nitin Yadav, Himanshu Tiwary, Raviranjan kumar, Rahul Raushan
+- Nitin Yadav
 
