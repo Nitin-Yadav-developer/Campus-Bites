@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}My Favorites - Campus Bites{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('profile') }}">My Profile</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Favorite Items</li>
+        </ol>
+    </nav>
+
+    <h2 class="mb-4"><i class="fas fa-heart text-danger me-2"></i>My Favorite Items</h2>
+    
+    {% if favorites %}
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+            {% for favorite in favorites %}
+            <div class="col">
+                <div class="card h-100">
+                    {% if favorite.product.image_url %}
+                    <img src="{{ favorite.product.image_url }}" class="card-img-top" alt="{{ favorite.product.name }}" style="height: 180px; object-fit: cover;">
+                    {% else %}
+                    <img src="{{ url_for('static', filename='images/food-placeholder.jpg') }}" class="card-img-top" alt="{{ favorite.product.name }}" style="height: 180px; object-fit: cover;">
+                    {% endif %}
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title mb-0">{{ favorite.product.name }}</h5>
+                            <a href="{{ url_for('remove_from_favorites', product_id=favorite.product.id) }}" class="text-danger" title="Remove from favorites">
+                                <i class="fas fa-heart"></i>
+                            </a>
+                        </div>
+                        <p class="card-text small text-muted">{{ favorite.product.description|truncate(80) }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="fs-5 fw-bold text-primary">${{ "%.2f"|format(favorite.product.price) }}</span>
+                            <form action="{{ url_for('add_to_cart', product_id=favorite.product.id) }}" method="post">
+                                <input type="hidden" name="quantity" value="1">
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-cart-plus me-1"></i> Add
+                                </button>
+                            </form>
+                        </div>
+                        <small class="text-muted d-block mt-2">Added on {{ favorite.date_added.strftime('%B %d, %Y') }}</small>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i> You don't have any favorite items yet. Browse items and click the heart icon to add them to your favorites.
+        </div>
+        <div class="text-center mt-4">
+            <a href="{{ url_for('index') }}" class="btn btn-primary">
+                <i class="fas fa-utensils me-2"></i> Browse Food Items
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

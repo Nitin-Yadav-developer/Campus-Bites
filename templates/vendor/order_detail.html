@@ -1,0 +1,179 @@
+{% extends 'vendor/layout.html' %}
+
+{% block title %}Order Detail{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3">Order #{{ order.order_number }}</h1>
+    <a href="{{ url_for('vendor_orders') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-1"></i> Back to Orders
+    </a>
+</div>
+
+<div class="row">
+    <!-- Order Information -->
+    <div class="col-md-5">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 fw-bold text-primary">Order Information</h6>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Order Number</label>
+                        <p class="fw-bold">{{ order.order_number }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Order Date</label>
+                        <p>{{ order.order_date.strftime('%Y-%m-%d %H:%M') }}</p>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Total Amount</label>
+                        <p class="fw-bold">₹{{ "%.2f"|format(order.total_amount) }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Status</label>
+                        <p>
+                            <span class="badge bg-{% if order.vendor_status == 'accepted' %}success{% elif order.vendor_status == 'rejected' %}danger{% else %}warning{% endif %}">
+                                {{ order.vendor_status|capitalize }}
+                            </span>
+                        </p>
+                    </div>
+                </div>
+                
+                {% if order.vendor_status == 'pending' %}
+                <div class="d-flex gap-2 mb-3">
+                    <form action="{{ url_for('vendor_accept_order', order_id=order.id) }}" method="post">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-check me-1"></i> Accept Order
+                        </button>
+                    </form>
+                    <form action="{{ url_for('vendor_reject_order', order_id=order.id) }}" method="post">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-times me-1"></i> Reject Order
+                        </button>
+                    </form>
+                </div>
+                {% endif %}
+                
+                <hr>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Delivery Option</label>
+                        <p>
+                            {% if order.delivery_option == 'deliver' %}
+                            <span class="badge bg-info">Delivery</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Pickup</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                
+                {% if order.delivery_option == 'deliver' %}
+                <div class="mb-3">
+                    <label class="form-label text-muted">Delivery Location</label>
+                    <p class="mb-1">{{ order.building }}, Room {{ order.room }}</p>
+                    {% if order.notes %}
+                    <p class="text-muted"><small>Notes: {{ order.notes }}</small></p>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Customer Information -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 fw-bold text-primary">Customer Information</h6>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Name</label>
+                        <p>{{ order.customer.name or '-' }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Username</label>
+                        <p>{{ order.customer.username }}</p>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Email</label>
+                        <p>{{ order.customer.email }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Mobile</label>
+                        <p>{{ order.customer.mobile_number or '-' }}</p>
+                    </div>
+                </div>
+                
+                <div class="mb-0">
+                    <label class="form-label text-muted">University</label>
+                    <p class="mb-0">{{ order.customer.university or '-' }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Order Items -->
+    <div class="col-md-7">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 fw-bold text-primary">Order Items</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Category</th>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in order.items %}
+                            <tr class="{% if item.product.vendor_id == current_user.vendor_id %}table-success{% endif %}">
+                                <td>
+                                    {{ item.product.name }}
+                                    {% if item.product.vendor_id == current_user.vendor_id %}
+                                    <span class="badge bg-success ms-1">Your Product</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ item.product.category.name }}</td>
+                                <td>₹{{ "%.2f"|format(item.price) }}</td>
+                                <td>{{ item.quantity }}</td>
+                                <td>₹{{ "%.2f"|format(item.price * item.quantity) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th colspan="4" class="text-end">Subtotal:</th>
+                                <th>₹{{ "%.2f"|format(order.total_amount) }}</th>
+                            </tr>
+                            <tr>
+                                <th colspan="4" class="text-end">Delivery Fee:</th>
+                                <th>₹3.00</th>
+                            </tr>
+                            <tr>
+                                <th colspan="4" class="text-end">Total:</th>
+                                <th>₹{{ "%.2f"|format(order.total_amount + 3) }}</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

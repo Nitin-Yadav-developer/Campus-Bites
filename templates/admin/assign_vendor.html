@@ -1,0 +1,60 @@
+{% extends 'admin/layout.html' %}
+
+{% block title %}Assign Vendor Role{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3">Assign Vendor Role: {{ user.username }}</h1>
+    <a href="{{ url_for('admin_user_detail', user_id=user.id) }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-1"></i> Back to User
+    </a>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 fw-bold text-primary">Vendor Assignment</h6>
+    </div>
+    <div class="card-body">
+        {% if user.vendor %}
+        <div class="alert alert-info">
+            <p>
+                <i class="fas fa-info-circle me-1"></i>
+                This user is currently assigned to vendor: <strong>{{ user.vendor.name }}</strong>
+            </p>
+        </div>
+        {% endif %}
+        
+        <form action="{{ url_for('admin_assign_vendor', user_id=user.id) }}" method="post">
+            <div class="mb-3">
+                <label for="vendor_id" class="form-label">Select Vendor Shop</label>
+                <select class="form-select" id="vendor_id" name="vendor_id">
+                    <option value="">-- None (Remove vendor role) --</option>
+                    {% for vendor in vendors %}
+                    <option value="{{ vendor.id }}" {% if user.vendor_id == vendor.id %}selected{% endif %}>
+                        {{ vendor.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <div class="form-text">
+                    Assigning a vendor role will allow this user to manage products and orders for the selected shop.
+                </div>
+            </div>
+            
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-1"></i> Save Assignment
+                </button>
+                <a href="{{ url_for('admin_user_detail', user_id=user.id) }}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if vendors|length == 0 %}
+<div class="alert alert-warning">
+    <i class="fas fa-exclamation-triangle me-1"></i>
+    No active vendors found. <a href="{{ url_for('admin_vendor_edit') }}">Create a vendor</a> first to assign to users.
+</div>
+{% endif %}
+
+{% endblock %}

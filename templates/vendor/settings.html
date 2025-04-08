@@ -1,0 +1,135 @@
+{% extends 'vendor/layout.html' %}
+
+{% block title %}Vendor Settings{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3">Vendor Settings</h1>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 fw-bold text-primary">Shop Information</h6>
+    </div>
+    <div class="card-body">
+        <form action="{{ url_for('vendor_settings') }}" method="post">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="name" class="form-label">Shop Name *</label>
+                    <input type="text" class="form-control" id="name" name="name" value="{{ vendor.name }}" required>
+                </div>
+                <div class="col-md-6">
+                    <label for="contact_name" class="form-label">Contact Person</label>
+                    <input type="text" class="form-control" id="contact_name" name="contact_name" value="{{ vendor.contact_name or '' }}">
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="email" class="form-label">Email *</label>
+                    <input type="email" class="form-control" id="email" name="email" value="{{ vendor.email }}" required>
+                </div>
+                <div class="col-md-6">
+                    <label for="phone" class="form-label">Phone</label>
+                    <input type="text" class="form-control" id="phone" name="phone" value="{{ vendor.phone or '' }}">
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="address" class="form-label">Address</label>
+                <textarea class="form-control" id="address" name="address" rows="3">{{ vendor.address or '' }}</textarea>
+            </div>
+            
+            <hr>
+            
+            <div class="mt-3">
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-save me-1"></i> Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 fw-bold text-primary">Shop Description</h6>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i> This description will be shown to customers browsing your shop.
+        </div>
+        
+        <form action="{{ url_for('vendor_update_description') }}" method="post">
+            <div class="mb-3">
+                <label for="description" class="form-label">Shop Description</label>
+                <textarea class="form-control" id="description" name="description" rows="5">{{ vendor.description or '' }}</textarea>
+                <small class="text-muted">Describe your shop, specialties, and what makes your food unique.</small>
+            </div>
+            
+            <div class="mb-3">
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-save me-1"></i> Update Description
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow">
+    <div class="card-header py-3">
+        <h6 class="m-0 fw-bold text-primary">Account Status</h6>
+    </div>
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <p class="mb-0"><strong>Current Status:</strong> 
+                    <span class="badge bg-{% if vendor.status == 'active' %}success{% else %}warning{% endif %}">
+                        {{ vendor.status|capitalize }}
+                    </span>
+                </p>
+                <p class="text-muted small mb-0">Joined on {{ vendor.joined_date.strftime('%B %d, %Y') }}</p>
+            </div>
+            
+            {% if vendor.status == 'active' %}
+            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deactivateModal">
+                <i class="fas fa-store-slash me-1"></i> Temporarily Close Shop
+            </button>
+            {% else %}
+            <form action="{{ url_for('vendor_reactivate') }}" method="post">
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-store me-1"></i> Reopen Shop
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Deactivate Shop Modal -->
+<div class="modal fade" id="deactivateModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Shop Closure</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to temporarily close your shop? While closed:</p>
+                <ul>
+                    <li>Your products won't be visible to customers</li>
+                    <li>You won't receive new orders</li>
+                    <li>Your existing orders will still need to be processed</li>
+                </ul>
+                <p>You can reopen your shop at any time.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="{{ url_for('vendor_deactivate') }}" method="post">
+                    <button type="submit" class="btn btn-danger">Close Shop</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

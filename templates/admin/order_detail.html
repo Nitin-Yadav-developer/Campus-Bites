@@ -1,0 +1,152 @@
+{% extends 'admin/layout.html' %}
+
+{% block title %}Order Detail{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3">Order #{{ order.order_number }}</h1>
+    <a href="{{ url_for('admin_orders') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-1"></i> Back to Orders
+    </a>
+</div>
+
+<div class="row">
+    <!-- Order Information -->
+    <div class="col-md-5">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 fw-bold text-primary">Order Information</h6>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Order Number</label>
+                        <p class="fw-bold">{{ order.order_number }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Order Date</label>
+                        <p>{{ order.order_date.strftime('%Y-%m-%d %H:%M') }}</p>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Total Amount</label>
+                        <p class="fw-bold">₹{{ "%.2f"|format(order.total_amount+3) }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Status</label>
+                        <p>
+                            <span class="badge bg-{% if order.status == 'completed' %}success{% elif order.status == 'pending' %}warning{% elif order.status == 'cancelled' %}danger{% else %}primary{% endif %}">
+                                {{ order.status|capitalize }}
+                            </span>
+                        </p>
+                    </div>
+                </div>
+                
+                <form action="{{ url_for('admin_order_detail', order_id=order.id) }}" method="post">
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Update Status</label>
+                        <select class="form-select" id="status" name="status">
+                            <option value="pending" {% if order.status == 'pending' %}selected{% endif %}>Pending</option>
+                            <option value="processing" {% if order.status == 'processing' %}selected{% endif %}>Processing</option>
+                            <option value="completed" {% if order.status == 'completed' %}selected{% endif %}>Completed</option>
+                            <option value="cancelled" {% if order.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i> Update Status
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Customer Information -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 fw-bold text-primary">Customer Information</h6>
+                <a href="{{ url_for('admin_user_detail', user_id=order.customer.id) }}" class="btn btn-sm btn-primary">
+                    <i class="fas fa-user me-1"></i> View Profile
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Name</label>
+                        <p>{{ order.customer.name or '-' }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Username</label>
+                        <p>{{ order.customer.username }}</p>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Email</label>
+                        <p>{{ order.customer.email }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Mobile</label>
+                        <p>{{ order.customer.mobile_number or '-' }}</p>
+                    </div>
+                </div>
+                
+                <div class="mb-0">
+                    <label class="form-label text-muted">University</label>
+                    <p class="mb-0">{{ order.customer.university or '-' }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Order Items -->
+    <div class="col-md-7">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 fw-bold text-primary">Order Items</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Category</th>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in order.items %}
+                            <tr>
+                                <td>{{ item.product.name }}</td>
+                                <td>{{ item.product.category.name }}</td>
+                                <td>₹{{ "%.2f"|format(item.price) }}</td>
+                                <td>{{ item.quantity }}</td>
+                                <td>₹{{ "%.2f"|format(item.price * item.quantity) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th colspan="4" class="text-end">Subtotal:</th>
+                                <th>₹{{ "%.2f"|format(order.total_amount) }}</th>
+                            </tr>
+                            <tr>
+                                <th colspan="4" class="text-end">Delivery Charge:</th>
+                                <th>₹3.00</th>
+                            </tr>
+                            <tr>
+                                <th colspan="4" class="text-end">Total:</th>
+                                <th>₹{{ "%.2f"|format(order.total_amount + 3) }}</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

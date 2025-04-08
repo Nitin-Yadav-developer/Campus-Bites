@@ -1,0 +1,292 @@
+{% extends 'vendor/layout.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<h1 class="h3 mb-4">Shop Dashboard</h1>
+
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <!-- Orders Card -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-0 stats-card stats-card-primary h-100 py-2">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <div class="text-xs fw-bold text-primary text-uppercase mb-1">Total Orders</div>
+                        <div class="h5 mb-0 fw-bold text-gray-800">{{ order_count }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-shopping-cart fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Orders Card -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-0 stats-card stats-card-warning h-100 py-2">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <div class="text-xs fw-bold text-warning text-uppercase mb-1">Pending Orders</div>
+                        <div class="h5 mb-0 fw-bold text-gray-800">{{ pending_count }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-clock fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Products Card -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-0 stats-card stats-card-info h-100 py-2">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <div class="text-xs fw-bold text-info text-uppercase mb-1">My Products</div>
+                        <div class="h5 mb-0 fw-bold text-gray-800">{{ product_count }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-hamburger fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Revenue Card -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-0 stats-card stats-card-success h-100 py-2">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <div class="text-xs fw-bold text-success text-uppercase mb-1">Total Revenue</div>
+                        <div class="h5 mb-0 fw-bold text-gray-800">₹{{ "%.2f"|format(total_revenue) }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-inr fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row mb-4">
+    <!-- Monthly Revenue Chart -->
+    <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 fw-bold text-primary">Monthly Revenue ({{ now.year }})</h6>
+            </div>
+            <div class="card-body">
+                <div style="height: 300px;">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Status Chart -->
+    <div class="col-lg-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 fw-bold text-primary">Order Status</h6>
+            </div>
+            <div class="card-body">
+                <div style="height: 300px;">
+                    <canvas id="orderStatusChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Orders & Popular Products -->
+<div class="row">
+    <!-- Recent Orders Table -->
+    <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 fw-bold text-primary">Recent Orders</h6>
+                <a href="{{ url_for('vendor_orders') }}" class="btn btn-sm btn-primary">View All</a>
+            </div>
+            <div class="card-body">
+                {% if recent_orders %}
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th>Order #</th>
+                                <th>Customer</th>
+                                <th>Date</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in recent_orders %}
+                            <tr>
+                                <td>{{ order.order_number }}</td>
+                                <td>{{ order.customer.name or order.customer.username }}</td>
+                                <td>{{ order.order_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>₹{{ "%.2f"|format(order.total_amount) }}</td>
+                                <td>
+                                    <span class="badge bg-{% if order.vendor_status == 'accepted' %}success{% elif order.vendor_status == 'rejected' %}danger{% else %}warning{% endif %}">
+                                        {{ order.vendor_status|capitalize }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('vendor_order_detail', order_id=order.id) }}" class="btn btn-sm btn-info">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center p-4">
+                    <i class="fas fa-info-circle text-info mb-3 fa-2x"></i>
+                    <p>No orders have been placed yet for your products.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Popular Products -->
+    <div class="col-lg-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 fw-bold text-primary">Popular Products</h6>
+                <a href="{{ url_for('vendor_products') }}" class="btn btn-sm btn-primary">All Products</a>
+            </div>
+            <div class="card-body">
+                {% if popular_products %}
+                <div class="list-group">
+                    {% for product in popular_products %}
+                    <div class="list-group-item list-group-item-action flex-column align-items-start">
+                        <div class="d-flex w-100 justify-content-between align-items-center">
+                            <h6 class="mb-1">{{ product.name }}</h6>
+                            <span class="badge bg-primary rounded-pill">{{ product.order_count }} orders</span>
+                        </div>
+                        <p class="mb-1 small text-muted">₹{{ "%.2f"|format(product.price) }} • {{ product.category.name }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center p-4">
+                    <i class="fas fa-hamburger text-secondary mb-3 fa-2x"></i>
+                    <p>Add products to your store to see popularity data.</p>
+                    <a href="{{ url_for('vendor_product_edit') }}" class="btn btn-primary btn-sm mt-2">
+                        <i class="fas fa-plus me-1"></i> Add Product
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Monthly Revenue Chart
+    var ctx1 = document.getElementById('revenueChart').getContext('2d');
+    var months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    var revenueData = {{ monthly_revenue|tojson }};
+    
+    var revenueChart = new Chart(ctx1, {
+        type: 'line',
+        data: {
+            labels: months,
+            datasets: [{
+                label: 'Monthly Revenue (₹)',
+                data: revenueData,
+                backgroundColor: 'rgba(78, 115, 223, 0.05)',
+                borderColor: 'rgba(78, 115, 223, 1)',
+                pointRadius: 3,
+                pointBackgroundColor: 'rgba(78, 115, 223, 1)',
+                pointBorderColor: 'rgba(78, 115, 223, 1)',
+                pointHoverRadius: 5,
+                pointHoverBackgroundColor: 'rgba(78, 115, 223, 1)',
+                pointHoverBorderColor: 'rgba(78, 115, 223, 1)',
+                pointHitRadius: 10,
+                pointBorderWidth: 2,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '₹' + value.toFixed(2);
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+
+    // Order Status Chart
+    var ctx2 = document.getElementById('orderStatusChart').getContext('2d');
+    var orderStatusData = {{ order_status_counts|tojson }};
+    
+    var orderStatusChart = new Chart(ctx2, {
+        type: 'doughnut',
+        data: {
+            labels: ['Pending', 'Accepted', 'Rejected'],
+            datasets: [{
+                data: orderStatusData,
+                backgroundColor: [
+                    '#f6c23e', // warning - pending
+                    '#1cc88a', // success - accepted
+                    '#e74a3b'  // danger - rejected
+                ],
+                hoverBackgroundColor: [
+                    '#f0b429',
+                    '#17a673',
+                    '#d52a1a'
+                ],
+                hoverBorderColor: 'rgba(234, 236, 244, 1)',
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                tooltip: {
+                    titleMarginBottom: 10,
+                    titleFontColor: '#6e707e',
+                    titleFontSize: 14,
+                    backgroundColor: "rgb(255,255,255)",
+                    bodyFontColor: "#858796",
+                    borderColor: '#dddfeb',
+                    borderWidth: 1,
+                    padding: 15,
+                    displayColors: false,
+                    caretPadding: 10,
+                }
+            },
+            cutout: '60%',
+        }
+    });
+</script>
+{% endblock %}

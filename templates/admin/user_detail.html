@@ -1,0 +1,134 @@
+{% extends 'admin/layout.html' %}
+
+{% block title %}Edit User{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3">Edit User: {{ user.username }}</h1>
+    <a href="{{ url_for('admin_users') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-1"></i> Back to Users
+    </a>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 fw-bold text-primary">User Information</h6>
+    </div>
+    <div class="card-body">
+        <form action="{{ url_for('admin_user_detail', user_id=user.id) }}" method="post">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text" class="form-control" id="username" name="username" value="{{ user.username }}" required>
+                </div>
+                <div class="col-md-6">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <label for="name" class="form-label">Full Name</label>
+                    <input type="text" class="form-control" id="name" name="name" value="{{ user.name or '' }}">
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="mobile_number" class="form-label">Mobile Number</label>
+                    <input type="text" class="form-control" id="mobile_number" name="mobile_number" value="{{ user.mobile_number or '' }}">
+                </div>
+                <div class="col-md-6">
+                    <label for="university" class="form-label">University</label>
+                    <input type="text" class="form-control" id="university" name="university" value="{{ user.university or '' }}">
+                </div>
+            </div>
+            
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" id="is_admin" name="is_admin" {% if user.is_admin %}checked{% endif %}>
+                <label class="form-check-label" for="is_admin">
+                    Admin privileges
+                </label>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Vendor Status</label>
+                <div>
+                    {% if user.vendor %}
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-success">Vendor for: {{ user.vendor.name }}</span>
+                        <a href="{{ url_for('admin_assign_vendor', user_id=user.id) }}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-exchange-alt me-1"></i> Change
+                        </a>
+                    </div>
+                    {% else %}
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-secondary">Not a vendor</span>
+                        <a href="{{ url_for('admin_assign_vendor', user_id=user.id) }}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-store me-1"></i> Assign Vendor Role
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <hr>
+            
+            <div class="mt-3">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-1"></i> Save Changes
+                </button>
+                <a href="{{ url_for('admin_users') }}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Order History Card -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 fw-bold text-primary">Order History</h6>
+    </div>
+    <div class="card-body">
+        {% if user.orders %}
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <th>Order #</th>
+                            <th>Date</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in user.orders %}
+                        <tr>
+                            <td>{{ order.order_number }}</td>
+                            <td>{{ order.order_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td>${{ "%.2f"|format(order.total_amount) }}</td>
+                            <td>
+                                <span class="badge bg-{% if order.status == 'completed' %}success{% elif order.status == 'pending' %}warning{% elif order.status == 'cancelled' %}danger{% else %}primary{% endif %}">
+                                    {{ order.status|capitalize }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{{ url_for('admin_order_detail', order_id=order.id) }}" class="btn btn-sm btn-info">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="alert alert-info mb-0">
+                <i class="fas fa-info-circle me-2"></i> This user has not placed any orders yet.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

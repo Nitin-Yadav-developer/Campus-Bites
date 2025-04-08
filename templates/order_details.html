@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}Order #{{ order.order_number }} - Campus Bites{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('profile') }}">My Profile</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Order #{{ order.order_number }}</li>
+        </ol>
+    </nav>
+
+    <div class="card mb-4">
+        <div class="card-header bg-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">Order #{{ order.order_number }}</h4>
+                <span class="badge bg-{% if order.status == 'completed' %}success{% elif order.status == 'pending' %}warning{% else %}primary{% endif %}" style="font-size: 0.9rem;">
+                    {{ order.status|capitalize }}
+                </span>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h5 class="mb-2">Order Information</h5>
+                    <p class="mb-1"><strong>Date:</strong> {{ order.order_date.strftime('%B %d, %Y at %I:%M %p') }}</p>
+                    <p class="mb-1"><strong>Status:</strong> {{ order.status|capitalize }}</p>
+                    <p class="mb-1"><strong>Total:</strong> ₹{{ "%.2f"|format(order.total_amount) }}</p>
+                </div>
+                <div class="col-md-6">
+                    <h5 class="mb-2">Customer Information</h5>
+                    <p class="mb-1"><strong>Name:</strong> {{ current_user.username }}</p>
+                    <p class="mb-1"><strong>Email:</strong> {{ current_user.email }}</p>
+                </div>
+            </div>
+
+            <h5 class="mb-3">Order Items</h5>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Price</th>
+                            <th>Quantity</th>
+                            <th class="text-end">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in order.items %}
+                        <tr>
+                            <td>{{ item.product.name }}</td>
+                            <td>₹{{ "%.2f"|format(item.price) }}</td>
+                            <td>{{ item.quantity }}</td>
+                            <td class="text-end">₹{{ "%.2f"|format(item.price * item.quantity) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th colspan="3" class="text-end">Total:</th>
+                            <th class="text-end">₹{{ "%.2f"|format(order.total_amount + 3) }}</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+        <div class="card-footer bg-white">
+            <div class="d-flex justify-content-between">
+                <a href="{{ url_for('profile') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i> Back to Orders
+                </a>
+                {% if order.status == 'pending' %}
+                <button class="btn btn-outline-danger" disabled>
+                    <i class="fas fa-times me-1"></i> Cancel Order
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
